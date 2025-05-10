@@ -79,8 +79,11 @@ function placeTeam(team) {
   formation.forEach((className, index) => {
     const img = classImages[team][className];
     if (img) {
-      const width = img.defaultWidth || img.width / 2;
-      const height = img.defaultHeight || img.height / 2;
+      var width = img.defaultWidth || img.width / 2;
+      var height = img.defaultHeight || img.height / 2;
+      // doing this because the class icons are usually too large.
+      width /= 3;
+      height /= 3;
       
       // Position each class in a horizontal line
       const posX = startX + (index * spacing);
@@ -225,12 +228,22 @@ canvas.addEventListener('mousedown', e => {
   }
 
   if (mode === 'move') {
+    // If we clicked on the currently selected object, deselect and return early
+    if (
+      selectedObject &&
+      canvasX >= selectedObject.x && canvasX <= selectedObject.x + selectedObject.width &&
+      canvasY >= selectedObject.y && canvasY <= selectedObject.y + selectedObject.height
+    ) {
+      selectedObject = null;
+      draw();
+      return; // Prevent selecting an object behind
+    }
+
     let clickedOnSomething = false;
 
-    // Check if we clicked on any object, skip currently selected object to allow deselection
+    // Check other objects (from top to bottom)
     for (let i = objects.length - 1; i >= 0; i--) {
       const obj = objects[i];
-      if (obj === selectedObject) continue;
 
       if (
         canvasX >= obj.x && canvasX <= obj.x + obj.width &&
