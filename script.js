@@ -223,19 +223,48 @@ canvas.addEventListener('mousedown', e => {
     startY = e.clientY;
     return;
   }
-  
-  // If we click outside of any object while in move mode, deselect
-  if (mode === 'move' && selectedObject) {
-    let clickedOnSelected = false;
-    if (selectedObject === mapImage) {
-      clickedOnSelected = canvasX >= mapImage.x && canvasX <= mapImage.x + mapImage.width &&
-                         canvasY >= mapImage.y && canvasY <= mapImage.y + mapImage.height;
-    } else {
-      clickedOnSelected = canvasX >= selectedObject.x && canvasX <= selectedObject.x + selectedObject.width &&
-                         canvasY >= selectedObject.y && canvasY <= selectedObject.y + selectedObject.height;
+
+  if (mode === 'move') {
+    let clickedOnSomething = false;
+
+    // Check if we clicked on any object, skip currently selected object to allow deselection
+    for (let i = objects.length - 1; i >= 0; i--) {
+      const obj = objects[i];
+      if (obj === selectedObject) continue;
+
+      if (
+        canvasX >= obj.x && canvasX <= obj.x + obj.width &&
+        canvasY >= obj.y && canvasY <= obj.y + obj.height
+      ) {
+        selectedObject = obj;
+        // Move selected object to end of array (top of stack)
+        objects.splice(i, 1);
+        objects.push(selectedObject);
+        startX = canvasX;
+        startY = canvasY;
+        draw();
+        clickedOnSomething = true;
+        return;
+      }
     }
-    
-    if (!clickedOnSelected) {
+
+    // Check if we clicked on the map (and it's not already selected)
+    if (
+      mapImage &&
+      selectedObject !== mapImage &&
+      canvasX >= mapImage.x && canvasX <= mapImage.x + mapImage.width &&
+      canvasY >= mapImage.y && canvasY <= mapImage.y + mapImage.height
+    ) {
+      selectedObject = mapImage;
+      startX = canvasX;
+      startY = canvasY;
+      draw();
+      clickedOnSomething = true;
+      return;
+    }
+
+    // Deselect if clicked on empty space
+    if (!clickedOnSomething && selectedObject) {
       selectedObject = null;
       draw();
     }
@@ -255,49 +284,20 @@ canvas.addEventListener('mousedown', e => {
     startY = canvasY;
     // No need to create a new path, we'll check for stroke erasure in mousemove
   } else if (mode === 'stamp' && stampImg) {
-    // Create stamp at half the original size
     const width = stampImg.defaultWidth || stampImg.width / 2;
     const height = stampImg.defaultHeight || stampImg.height / 2;
     objects.push({
       type: 'stamp',
       img: stampImg,
       path: currentStampPath,
-      x: canvasX - width/2,
-      y: canvasY - height/2,
+      x: canvasX - width / 2,
+      y: canvasY - height / 2,
       width: width,
       height: height,
       originalWidth: stampImg.width,
       originalHeight: stampImg.height
     });
     draw();
-  } else if (mode === 'move') {
-    // Check if we clicked on an object (checking in reverse to select top objects first)
-    selectedObject = null;
-    for (let i = objects.length - 1; i >= 0; i--) {
-      const obj = objects[i];
-      if (
-        canvasX >= obj.x && canvasX <= obj.x + obj.width &&
-        canvasY >= obj.y && canvasY <= obj.y + obj.height
-      ) {
-        selectedObject = obj;
-        // Move selected object to end of array (top of stack)
-        objects.splice(i, 1);
-        objects.push(selectedObject);
-        startX = canvasX;
-        startY = canvasY;
-        draw();
-        break;
-      }
-    }
-    
-    // If no object was selected and we clicked on the map, select the map
-    if (!selectedObject && mapImage && 
-        canvasX >= mapImage.x && canvasX <= mapImage.x + mapImage.width &&
-        canvasY >= mapImage.y && canvasY <= mapImage.y + mapImage.height) {
-      selectedObject = mapImage;
-      startX = canvasX;
-      startY = canvasY;
-    }
   }
 });
 
