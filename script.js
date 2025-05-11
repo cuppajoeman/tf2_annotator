@@ -1,4 +1,3 @@
-
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const colorPicker = document.getElementById('colorPicker');
@@ -41,7 +40,7 @@ const classImages = {
   red: {}
 };
 
-const classTypes = ['scout', 'soldier', 'pyro', 'demo', 'heavy', 'engi', 'med', 'sniper', 'spy'];
+const classTypes = ['scout', 'soldier', 'pyro', 'demo', 'heavy', 'engi', 'gun', 'med', 'sniper', 'spy'];
 classTypes.forEach(className => {
   // Preload BLU team images
   const bluImg = new Image();
@@ -297,8 +296,11 @@ canvas.addEventListener('mousedown', e => {
     startY = canvasY;
     // No need to create a new path, we'll check for stroke erasure in mousemove
   } else if (mode === 'stamp' && stampImg) {
-    const width = stampImg.defaultWidth || stampImg.width / 2;
-    const height = stampImg.defaultHeight || stampImg.height / 2;
+    var width = stampImg.defaultWidth || stampImg.width / 2;
+    var height = stampImg.defaultHeight || stampImg.height / 2;
+    width /= 3;
+    height /= 3;
+
     objects.push({
       type: 'stamp',
       img: stampImg,
